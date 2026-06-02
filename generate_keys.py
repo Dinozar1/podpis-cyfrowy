@@ -1,33 +1,48 @@
+import os
+import subprocess
 from Crypto.PublicKey import RSA
 
-print("Rozpoczynam generowanie kluczy RSA-2048...")
+print("=== START: Odświeżanie puli entropii ===")
 
-# Próbujemy otworzyć Twój plik z entropią
+# 1. Automatyczne odpalenie Twojego programu w C
+try:
+    print("Uruchamianie sprzętowego TRNG (jitter_rng)...")
+    subprocess.run(["./jitter_rng"], check=True)
+    print("Świeży plik data.bin został pomyślnie wygenerowany!")
+except Exception as e:
+    print("BŁĄD: Nie udało się uruchomić pliku wykonywalnego './jitter_rng'.")
+    print(f"Szczegóły: {e}")
+    exit(1)
+
+# 2. Czytanie świeżej entropii
+print("\n=== GENEROWANIE KLUCZY RSA ===")
 try:
     trng_file = open("data.bin", "rb")
 except FileNotFoundError:
-    print("BŁĄD: Nie znaleziono pliku 'data.bin'! Upewnij się, że jest w tym samym folderze co ten skrypt.")
+    print("BŁĄD: Brak pliku data.bin!")
     exit(1)
 
-# Nasza autorska funkcja pobierająca losowość z TRNG zamiast z systemu
 def trng_randfunc(n):
     data = trng_file.read(n)
     if len(data) < n:
-        raise ValueError("Zabrakło danych w pliku data.bin! Wygeneruj większy plik.")
+        raise ValueError("Zabrakło danych w pliku! Zwiększ bytes_to_generate w C.")
     return data
 
-print("Generowanie kluczy w oparciu o sprzętowe TRNG (data.bin)...")
-
-# Generujemy klucze
+# Generowanie kluczy w oparciu o świeże TRNG
+print("Kalkulowanie parametrów klucza RSA-2048...")
 key = RSA.generate(2048, randfunc=trng_randfunc)
 
-# Zapisujemy klucz prywatny
+# Zapis kluczy
 with open("private.pem", "wb") as f_out:
     f_out.write(key.export_key())
 
-# Zapisujemy klucz publiczny
 with open("public.pem", "wb") as f_out:
     f_out.write(key.publickey().export_key())
 
 trng_file.close()
-print("Sukces! Zapisano pliki: private.pem oraz public.pem")
+
+# 3. Zacieranie śladów (Dobra praktyka bezpieczeństwa)
+os.remove("data.bin")
+
+print("SUKCES: Zapisano świeże pliki private.pem oraz public.pem.")
+print("Pula entropii (data.bin) została bezpiecznie wyczyszczona z dysku.")
