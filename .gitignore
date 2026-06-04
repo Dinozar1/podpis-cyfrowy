@@ -1,0 +1,43 @@
+# =========================
+# Środowisko wirtualne
+# =========================
+venv/
+env/
+.env
+
+# =========================
+# Cache i pliki tymczasowe Pythona
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Skompilowane pliki C / Binarne
+# =========================
+jitter_rng
+*.o
+*.out
+
+# =========================
+# Klucze kryptograficzne
+# (NIGDY nie udostępniaj kluczy prywatnych!)
+# =========================
+private.pem
+public.pem
+*.pem
+*.key
+
+# =========================
+# Wygenerowane podpisy i pliki testowe
+# =========================
+*.sig
+signature.sig
+message.txt.sig
+message.txt
+
+# =========================
+# Archiwa i inne
+# =========================
+*.zip
+podpis.zip
